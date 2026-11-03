@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   TrendingDown, 
   Wrench, 
@@ -32,6 +32,42 @@ export const PredictiveEngine: React.FC<PredictiveEngineProps> = ({
   onSetSpeedMultiplier,
 }) => {
   const { currentPdA, criticalPdA, remainingHours, remainingDays, isUrgent, accumulatedHours, safetyMarginPct } = prognosis;
+  const [geminiReport, setGeminiReport] = useState<string | null>(null);
+  const [geminiLoading, setGeminiLoading] = useState(false);
+
+  const handleRunGeminiAudit = async () => {
+    const apiKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
+    if (!apiKey) {
+      setGeminiReport('Set VITE_GEMINI_API_KEY in .env.local to enable live Gemini 2.5 Flash telemetry audits.');
+      return;
+    }
+    setGeminiLoading(true);
+    try {
+      const prompt = `You are the DoseGuard Edge AI Firmware & Telemetry Copilot (Team SpaceX, KIIT). Analyze this live 2 Hz reactor snapshot and Int8 ESP32 Edge AI output in 3 concise, technical bullet points (1. Optical & Dose Status, 2. Int8 RUL vs Linear L70 Analysis, 3. Prescribed Action):
+- PD-A Reference: ${currentPdA.toFixed(3)} V (Critical Floor: ${criticalPdA.toFixed(3)} V, Headroom: +${safetyMarginPct.toFixed(1)}%)
+- Operating Hours: ${Math.round(accumulatedHours)} hrs | Quartz Window Scaling: ${windowFouling.toFixed(0)}%
+- Int8 Edge AI RUL: ${Math.round(edgeAi.aiRulDays)} days (90% CI: [${Math.round(edgeAi.aiRulLowerDays)}, ${Math.round(edgeAi.aiRulUpperDays)}] days) vs Linear L70 Baseline: ${Math.round(remainingDays)} days
+- 15m Monsoon Surge Risk: ${(edgeAi.monsoonSpikeProb * 100).toFixed(1)}% | Quartz Fouling/Drift Prob: ${(edgeAi.opticalFoulingProb * 100).toFixed(1)}%`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+      const data = await res.json();
+      const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      setGeminiReport(text || 'Unable to parse Gemini response.');
+    } catch (err: any) {
+      setGeminiReport(`Gemini API error: ${err?.message || 'Network request failed'}`);
+    } finally {
+      setGeminiLoading(false);
+    }
+  };
 
   // SVG chart dimensions
   const width = 480;
@@ -385,15 +421,37 @@ export const PredictiveEngine: React.FC<PredictiveEngineProps> = ({
 
       </div>
 
-      {/* Live Advisory Diagnostic Banner */}
-      <div className="p-3.5 rounded-2xl bg-photon-cyan/5 border border-photon-cyan/25 mb-5 flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
-        <div className="flex items-center space-x-2 text-slate-200">
-          <Cpu className="w-4 h-4 text-photon-cyan flex-shrink-0" />
-          <span className="font-sans text-xs">{edgeAi.advisorySummary}</span>
+      {/* Live Advisory Diagnostic Banner + Gemini 2.5 Flash Copilot Trigger */}
+      <div className="p-3.5 rounded-2xl bg-photon-cyan/5 border border-photon-cyan/25 mb-5 space-y-3 text-xs font-mono">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center space-x-2 text-slate-200">
+            <Cpu className="w-4 h-4 text-photon-cyan flex-shrink-0" />
+            <span className="font-sans text-xs">{edgeAi.advisorySummary}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleRunGeminiAudit}
+              disabled={geminiLoading}
+              className="flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-gradient-to-r from-photon-cyan to-teal-400 text-obsidian-950 font-bold text-[11px] shadow-sm hover:opacity-95 disabled:opacity-50 transition-all"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>{geminiLoading ? 'Querying Gemini 2.5 Flash...' : 'Ask Gemini 2.5 Copilot'}</span>
+            </button>
+            <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
+              Valve Lock: Hardware Deterministic (≥40 mJ/cm²)
+            </span>
+          </div>
         </div>
-        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-bold">
-          Valve Lock: Hardware Deterministic (≥40 mJ/cm²)
-        </span>
+
+        {geminiReport && (
+          <div className="p-3 rounded-xl bg-obsidian-950/90 border border-photon-cyan/30 text-slate-200 font-sans text-xs whitespace-pre-line leading-relaxed">
+            <div className="flex items-center justify-between text-[10px] font-mono text-photon-cyan mb-1">
+              <span>GEMINI 2.5 FLASH • LIVE TELEMETRY &amp; INT8 EDGE AI AUDIT</span>
+              <button onClick={() => setGeminiReport(null)} className="text-slate-400 hover:text-white">Dismiss ✕</button>
+            </div>
+            {geminiReport}
+          </div>
+        )}
       </div>
 
       {/* Lamp Aging Acceleration Control */}
