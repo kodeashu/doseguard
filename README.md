@@ -4,6 +4,7 @@
 [![Track](https://img.shields.io/badge/Track-2:_Smart_Water_Purifier-purple?style=for-the-badge)](https://doseguard-spacex-kiit.netlify.app/)
 [![Team](https://img.shields.io/badge/Team-SpaceX_(KIIT)-emerald?style=for-the-badge)](https://doseguard-spacex-kiit.netlify.app/)
 [![Standard](https://img.shields.io/badge/Standard-NSF_55_Class_A_(≥40_mJ/cm²)-blue?style=for-the-badge)](https://doseguard-spacex-kiit.netlify.app/)
+[![Open In Colab](https://img.shields.io/badge/Colab-DoseGuard_Edge_AI_Notebook-F9AB00?style=for-the-badge&logo=googlecolab)](https://colab.research.google.com/github/kodeashu/doseguard/blob/main/edge_ai/DoseGuard_Edge_AI_Colab.ipynb)
 
 > **Engineering-Validated Digital Twin & Firmware-Identical UV Dosing Controller for Smart Home Purifiers.**  
 > Developed by **Team SpaceX**, Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar for **atomQUEST 2026** (organized by Atomberg Technologies).
@@ -63,6 +64,31 @@ $$\text{Valve Energized} = \text{SensorsOK} \land (\text{Delivered Dose} \ge 40.
 * **Hydraulic Pressure Rating:** Tested to 8.0 bar (116 PSI)
 * **Fail-Safe Actuator:** 24V Normally-Closed (NC) Food-Grade Solenoid Valve ($<2\text{s}$ spring-return shutoff)
 * **Safety Interlock:** Hermetic magnetic reed switch cutting UVC LED driver power in $<1\text{ ms}$ upon cover opening
+
+---
+
+## 🧠 DoseGuard™ Advisory Edge AI (Colab + ESP32 Int8 Inference)
+
+To solve nonlinear AlGaN 275 nm LED tail degradation, thermal junction stress, and reversible Suprasil-300 quartz window scaling without compromising deterministic safety, DoseGuard™ includes a **Symmetric Int8 Post-Training Quantized (PTQ) Edge AI Engine** running on **ESP32 Core 0** (and identically inside the browser digital twin via [`src/utils/edgeAiEngine.ts`](src/utils/edgeAiEngine.ts)):
+
+* **Hardware Safety Isolation:** Core 1 executes the deterministic 2 Hz Beer-Lambert loop and retains exclusive control of the fail-closed solenoid valve ($\ge 40.0\text{ mJ/cm}^2$). Core 0 runs [`doseguard_run_advisory_inference()`](edge_ai/esp32_firmware/doseguard_model_int8.h) every 5 seconds in an isolated FreeRTOS task ([`doseguard_edge_ai.ino`](edge_ai/esp32_firmware/doseguard_edge_ai.ino)).
+* **Verified Test Benchmarks (24,000 Monte Carlo Snapshots / 300 Units, Unit-Grouped Split):**
+
+| Task / Metric | Linear L70 Baseline | DoseGuard Int8 Edge MLP | Improvement / Hardware Footprint |
+|---|---|---|---|
+| **Cross-Language Twin Parity** | — | **$2.13 \times 10^{-14}$ max error** | **100.0% state match** (Python vs TS vs C99) |
+| **Task 1: Lamp RUL Regression (MAE)** | $156.53\text{ days}$ ($R^2 = -0.35$) | **$15.98\text{ days}$** ($R^2 = 0.9842$) | **-89.8% RUL Error** (95% CI: $[15.47, 16.46]\text{d}$) |
+| **Fouled Quartz Window Slice ($\ge 3\%$)** | $154.09\text{ days}$ MAE | **$14.15\text{ days}$ MAE** | Prevents false ₹6,000 UVC lamp replacements |
+| **Task 2: 15-min Monsoon Surge Forecast** | Rule threshold | **0.9990 ROC-AUC** ($F_1 = 0.9545$) | Precision $94.66\%$, Recall $96.24\%$ |
+| **Task 3: Quartz Scaling / Sensor Drift** | Rule threshold | **0.9759 ROC-AUC** ($F_1 = 0.8438$) | Isolates reversible mineral film from LED wear |
+| **Total Int8 Flash & Latency (ESP32)** | — | **1,371 Bytes Flash / 1.5 KB RAM** | **$\approx 420\ \mu\text{s}$ latency** at 240 MHz ($\Delta\text{Int8} = 0.075\text{d}$) |
+
+### Run the Edge AI Pipeline or Open in Google Colab
+* **Google Colab Notebook:** [`edge_ai/DoseGuard_Edge_AI_Colab.ipynb`](edge_ai/DoseGuard_Edge_AI_Colab.ipynb)
+* **Local Reproduction:**
+  ```bash
+  .venv/bin/python edge_ai/train_and_export.py
+  ```
 
 ---
 

@@ -319,11 +319,11 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
 
       </div>
 
-      {/* Hardware Interlock & Fault Injection Switches */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-5 border-t border-slate-800/80">
+      {/* Hardware Interlock, Fault Injection & Quartz Window Fouling Switches */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-5 border-t border-slate-800/80">
         
         {/* Cover Interlock Switch */}
-        <div className="p-4 rounded-2xl bg-obsidian-950/70 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-obsidian-950/70 border border-slate-800 flex items-center justify-between gap-2">
           <div className="space-y-0.5">
             <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-200 font-mono">
               {inputs.coverClosed ? <ShieldCheck className="w-4 h-4 text-emerald-400" /> : <ShieldAlert className="w-4 h-4 text-rose-400" />}
@@ -337,7 +337,7 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
           <button
             onClick={() => onUpdateInputs({ coverClosed: !inputs.coverClosed })}
             disabled={autoDemoActive}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all whitespace-nowrap ${
               inputs.coverClosed
                 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 hover:bg-emerald-500/30'
                 : 'bg-rose-500/20 text-rose-300 border-rose-500/50 hover:bg-rose-500/30 animate-pulse'
@@ -348,11 +348,11 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
         </div>
 
         {/* Sensor Anomaly Injection */}
-        <div className="p-4 rounded-2xl bg-obsidian-950/70 border border-slate-800 flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-obsidian-950/70 border border-slate-800 flex items-center justify-between gap-2">
           <div className="space-y-0.5">
             <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-200 font-mono">
               <AlertTriangle className={`w-4 h-4 ${inputs.sensorFault ? 'text-rose-400' : 'text-slate-400'}`} />
-              <span>Dual-Photodiode Fault Injection</span>
+              <span>Dual-Photodiode Fault</span>
             </div>
             <p className="text-[11px] text-slate-400 font-mono">
               {inputs.sensorFault ? 'Corrupt ratio injected (PD-B > PD-A).' : 'Sensors within calibrated optical envelope.'}
@@ -362,13 +362,44 @@ export const ScenarioSimulator: React.FC<ScenarioSimulatorProps> = ({
           <button
             onClick={() => onUpdateInputs({ sensorFault: !inputs.sensorFault })}
             disabled={autoDemoActive}
-            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all ${
+            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all whitespace-nowrap ${
               inputs.sensorFault
                 ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 hover:bg-rose-500/30 animate-pulse'
                 : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
             }`}
           >
             {inputs.sensorFault ? 'Fault Active' : 'Inject Fault'}
+          </button>
+        </div>
+
+        {/* Suprasil-300 Quartz Window Scaling (Edge AI Diagnostic Test) */}
+        <div className="p-4 rounded-2xl bg-obsidian-950/70 border border-slate-800 flex items-center justify-between gap-2">
+          <div className="space-y-0.5">
+            <div className="flex items-center space-x-1.5 text-xs font-bold text-slate-200 font-mono">
+              <Sparkles className={`w-4 h-4 ${(inputs.windowFouling ?? 0) > 0 ? 'text-purple-400' : 'text-slate-400'}`} />
+              <span>Quartz Window Fouling</span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-mono">
+              {(inputs.windowFouling ?? 0) > 0
+                ? `${inputs.windowFouling}% mineral film; AI isolates from LED wear.`
+                : 'Suprasil-300 optical windows clean (0% film).'}
+            </p>
+          </div>
+
+          <button
+            onClick={() =>
+              onUpdateInputs({
+                windowFouling: (inputs.windowFouling ?? 0) >= 8 ? 0 : (inputs.windowFouling ?? 0) === 0 ? 5 : 10,
+              })
+            }
+            disabled={autoDemoActive}
+            className={`px-3 py-1.5 rounded-xl border text-xs font-mono font-bold transition-all whitespace-nowrap ${
+              (inputs.windowFouling ?? 0) > 0
+                ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 hover:bg-purple-500/30'
+                : 'bg-slate-800 text-slate-300 border-slate-700 hover:text-white'
+            }`}
+          >
+            {(inputs.windowFouling ?? 0) > 0 ? `Fouled (${inputs.windowFouling}%)` : 'Simulate Scaling'}
           </button>
         </div>
 

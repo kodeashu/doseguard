@@ -23,6 +23,7 @@ import {
   calculateLampPrognosis, 
   CHAMBER_CONSTANTS 
 } from './utils/physicsModel';
+import { evaluateEdgeAiAdvisory } from './utils/edgeAiEngine';
 
 export const App: React.FC = () => {
   // 1. Simulation Inputs
@@ -31,6 +32,7 @@ export const App: React.FC = () => {
     lampOutput: 100,
     coverClosed: true,
     sensorFault: false,
+    windowFouling: 0,
   });
 
   // 2. Simulation State & Clocks
@@ -108,6 +110,14 @@ export const App: React.FC = () => {
     outputs.T,
     accumulatedHours,
     speedMultiplier
+  );
+
+  // Int8 Edge AI Advisory Inference (Browser + ESP32 Identical)
+  const edgeAi = evaluateEdgeAiAdvisory(
+    inputs,
+    outputs,
+    prognosis,
+    telemetry.slice(-20).map((t) => t.uvtPerCm)
   );
 
   // 8. Track previous safety state to detect and log state transitions
@@ -199,9 +209,15 @@ export const App: React.FC = () => {
       lampOutput: 100,
       coverClosed: true,
       sensorFault: false,
+      windowFouling: 0,
     });
     setSpeedMultiplier(1);
-    addToast('✓ Restored Default Nominal Feed', 'Clear tap water, 100% lamp, cover latched, nominal flow active.', 'info');
+    addToast('✓ Restored Default Nominal Feed', 'Clear tap water, 100% lamp, clean quartz windows, nominal flow active.', 'info');
+  };
+
+  const handleWipeQuartzWindow = () => {
+    setInputs((prev) => ({ ...prev, windowFouling: 0 }));
+    addToast('✓ Suprasil-300 Quartz Window Wiped Clean', 'Mineral/tannin scaling removed (0% film). Optical transmittance restored.', 'success');
   };
 
   const handleInstallNewLamp = () => {
@@ -349,10 +365,13 @@ endsolid DoseGuard_UV_Reactor_Chamber`;
         onExportLogs={handleExportLogs}
       />
 
-      {/* Predictive Lamp-Decay Forecasting Engine */}
+      {/* Predictive Lamp-Decay & Int8 Edge AI Forecasting Engine */}
       <PredictiveEngine
         prognosis={prognosis}
+        edgeAi={edgeAi}
+        windowFouling={inputs.windowFouling ?? 0}
         onInstallNewLamp={handleInstallNewLamp}
+        onWipeQuartzWindow={handleWipeQuartzWindow}
         speedMultiplier={speedMultiplier}
         onSetSpeedMultiplier={setSpeedMultiplier}
       />

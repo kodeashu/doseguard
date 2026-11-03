@@ -5,6 +5,7 @@ export interface SystemInputs {
   lampOutput: number;     // 40 - 100% (UVC Lamp Aging / Irradiance level)
   coverClosed: boolean;   // true = Interlock closed & safe; false = Cover open (interlock cut)
   sensorFault: boolean;   // true = Hardware sensor fault injected
+  windowFouling?: number; // 0 - 15% (Reversible quartz window mineral/tannin scaling)
 }
 
 export interface SimulationOutputs {
@@ -64,4 +65,26 @@ export interface ToastMessage {
   title: string;
   description?: string;
   type?: 'info' | 'success' | 'warning' | 'error';
+}
+
+export interface EdgeAiAdvisory {
+  aiRulDays: number;
+  aiRulHours: number;
+  aiRulLowerDays: number;
+  aiRulUpperDays: number;
+  linearRulDays: number;
+  rulDeltaDays: number;
+  monsoonSpikeProb: number;
+  monsoonSpikeAlert: boolean;
+  opticalFoulingProb: number;
+  opticalFoulingAlert: boolean;
+  inferenceLatencyUs: number;
+  quantizationMode: 'INT8_SYMMETRIC';
+  advisorySummary: string;
+  featureContributions: Array<{
+    name: string;
+    label: string;
+    normalizedValue: number;
+    importanceDays: number;
+  }>;
 }

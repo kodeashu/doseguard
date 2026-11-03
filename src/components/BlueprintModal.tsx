@@ -14,6 +14,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { OPENSCAD_CAD_SCRIPT, PROTOTYPE_BOM, VIDEO_SCRIPT } from '../utils/physicsModel';
+import { EDGE_AI_METADATA } from '../utils/edgeAiEngine';
 
 interface BlueprintModalProps {
   isOpen: boolean;
@@ -28,7 +29,7 @@ export const BlueprintModal: React.FC<BlueprintModalProps> = ({
   onExportStl,
   onShowToast,
 }) => {
-  const [activeTab, setActiveTab] = useState<'specs' | 'cad' | 'bom' | 'video' | 'math'>('specs');
+  const [activeTab, setActiveTab] = useState<'specs' | 'cad' | 'bom' | 'video' | 'math' | 'edgeai'>('specs');
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -89,6 +90,7 @@ export const BlueprintModal: React.FC<BlueprintModalProps> = ({
         <div className="flex items-center space-x-1 px-6 pt-2 border-b border-slate-800 bg-obsidian-950/40 text-xs font-mono overflow-x-auto">
           {[
             { id: 'specs', label: 'CAD Specs & Dimensions', icon: Layers },
+            { id: 'edgeai', label: 'Int8 Edge AI (ESP32 + Colab)', icon: Cpu },
             { id: 'cad', label: 'OpenSCAD / Fusion Script', icon: FileCode2 },
             { id: 'bom', label: 'Prototype BOM (₹28,000)', icon: DollarSign },
             { id: 'video', label: '90-Sec Video Script', icon: Video },
@@ -357,6 +359,71 @@ export const BlueprintModal: React.FC<BlueprintModalProps> = ({
                   <p>• Delivered Dose = F · V / qSet</p>
                   <p>• valveOpen = sensorsOk &amp;&amp; (Dose ≥ D_SET = 40 mJ/cm²) (Fail-Closed)</p>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 6: Int8 Edge AI & ESP32 Firmware */}
+          {activeTab === 'edgeai' && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl bg-photon-cyan/5 border border-photon-cyan/25 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-bold text-sm text-white font-sans">
+                    Symmetric Int8 Edge AI Prognosis &amp; Anomaly Engine (ESP32 Core 0)
+                  </h4>
+                  <p className="text-xs text-slate-300 mt-0.5">
+                    Trained on {EDGE_AI_METADATA.dataset_rows.toLocaleString()} Monte Carlo optical-hydraulic snapshots ({EDGE_AI_METADATA.dataset_units} purifier units, unit-grouped split).
+                  </p>
+                </div>
+                <a
+                  href="https://colab.research.google.com/github/kodeashu/doseguard/blob/main/edge_ai/DoseGuard_Edge_AI_Colab.ipynb"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-photon-cyan to-teal-400 text-obsidian-950 font-bold text-xs shadow-md hover:opacity-95 transition-opacity"
+                >
+                  Open Colab Notebook ↗
+                </a>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="p-3.5 rounded-2xl bg-obsidian-950 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 text-[11px]">Task 1: Lamp RUL Regression</span>
+                  <p className="text-lg font-extrabold text-photon-cyan">
+                    {EDGE_AI_METADATA.rul_int8_mae_days}d MAE (R² {EDGE_AI_METADATA.rul_int8_r2})
+                  </p>
+                  <p className="text-[11px] text-emerald-400">
+                    -{EDGE_AI_METADATA.rul_mae_improvement_pct}% error vs Linear L70 ({EDGE_AI_METADATA.rul_linear_mae_days}d MAE)
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-obsidian-950 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 text-[11px]">Task 2 &amp; 3: Surge &amp; Fouling ROC-AUC</span>
+                  <p className="text-lg font-extrabold text-purple-300">
+                    {EDGE_AI_METADATA.spike_int8_roc_auc} / {EDGE_AI_METADATA.anom_int8_roc_auc}
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    15-min Monsoon Surge (F1 {EDGE_AI_METADATA.spike_int8_f1}) &amp; Quartz Scaling
+                  </p>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-obsidian-950 border border-slate-800 space-y-1">
+                  <span className="text-slate-400 text-[11px]">ESP32 Footprint &amp; Parity</span>
+                  <p className="text-lg font-extrabold text-emerald-400">
+                    {EDGE_AI_METADATA.total_int8_flash_bytes} Bytes Flash
+                  </p>
+                  <p className="text-[11px] text-slate-400">
+                    ~{EDGE_AI_METADATA.esp32_est_latency_us} µs on Core 0 • ΔInt8={EDGE_AI_METADATA.quantization_mae_delta_days}d
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-obsidian-950 border border-slate-800 space-y-2">
+                <span className="text-emerald-400 font-bold block">
+                  Safety Case: Hardware-Isolated Advisory Architecture
+                </span>
+                <p className="text-slate-300 font-sans text-xs leading-relaxed">
+                  On the dual-core ESP32, Core 1 executes the deterministic 2 Hz (500 ms) Beer-Lambert control loop and owns exclusive hardware write access to <code className="text-photon-cyan">PIN_SOLENOID_VALVE</code>. Core 0 runs <code className="text-purple-300">doseguard_run_advisory_inference()</code> every 5 seconds inside an isolated FreeRTOS task (<code className="text-photon-cyan">edge_ai/esp32_firmware/doseguard_model_int8.h</code>). Even if adversarial or corrupted sensor inputs are fed into the neural network, it is physically and architecturally impossible for the ML model to hold the solenoid valve open when Delivered Dose &lt; 40.0 mJ/cm².
+                </p>
               </div>
             </div>
           )}
