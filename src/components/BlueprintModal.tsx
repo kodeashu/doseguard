@@ -376,12 +376,12 @@ export const BlueprintModal: React.FC<BlueprintModalProps> = ({
                   </p>
                 </div>
                 <a
-                  href="https://colab.research.google.com/github/kodeashu/doseguard/blob/main/edge_ai/DoseGuard_Edge_AI_Colab.ipynb"
+                  href="https://colab.research.google.com/drive/1oiHTJicWsBncVU_whF_x4sjKOavRV1dI?usp=sharing"
                   target="_blank"
                   rel="noreferrer"
                   className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-photon-cyan to-teal-400 text-obsidian-950 font-bold text-xs shadow-md hover:opacity-95 transition-opacity"
                 >
-                  Open Colab Notebook ↗
+                  Open Executed Colab ↗
                 </a>
               </div>
 

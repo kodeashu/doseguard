@@ -4,7 +4,7 @@
 [![Track](https://img.shields.io/badge/Track-2:_Smart_Water_Purifier-purple?style=for-the-badge)](https://doseguard-spacex-kiit.netlify.app/)
 [![Team](https://img.shields.io/badge/Team-SpaceX_(KIIT)-emerald?style=for-the-badge)](https://doseguard-spacex-kiit.netlify.app/)
 [![Standard](https://img.shields.io/badge/Standard-NSF_55_Class_A_(≥40_mJ/cm²)-blue?style=for-the-badge)](https://doseguard-spacex-kiit.netlify.app/)
-[![Open In Colab](https://img.shields.io/badge/Colab-DoseGuard_Edge_AI_Notebook-F9AB00?style=for-the-badge&logo=googlecolab)](https://colab.research.google.com/github/kodeashu/doseguard/blob/main/edge_ai/DoseGuard_Edge_AI_Colab.ipynb)
+[![Open In Colab](https://img.shields.io/badge/Colab-DoseGuard_Edge_AI_Notebook-F9AB00?style=for-the-badge&logo=googlecolab)](https://colab.research.google.com/drive/1oiHTJicWsBncVU_whF_x4sjKOavRV1dI?usp=sharing)
 
 > **Engineering-Validated Digital Twin & Firmware-Identical UV Dosing Controller for Smart Home Purifiers.**  
 > Developed by **Team SpaceX**, Kalinga Institute of Industrial Technology (KIIT), Bhubaneswar for **atomQUEST 2026** (organized by Atomberg Technologies).
@@ -84,7 +84,7 @@ To solve nonlinear AlGaN 275 nm LED tail degradation, thermal junction stress, a
 | **Total Int8 Flash & Latency (ESP32)** | — | **1,371 Bytes Flash / 1.5 KB RAM** | **$\approx 420\ \mu\text{s}$ latency** at 240 MHz ($\Delta\text{Int8} = 0.075\text{d}$) |
 
 ### Run the Edge AI Pipeline or Open in Google Colab
-* **Google Colab Notebook:** [`edge_ai/DoseGuard_Edge_AI_Colab.ipynb`](edge_ai/DoseGuard_Edge_AI_Colab.ipynb)
+* **Executed Google Colab Notebook (Public Share):** [Open in Google Colab (`1oiHTJicWsBncVU_whF_x4sjKOavRV1dI`)](https://colab.research.google.com/drive/1oiHTJicWsBncVU_whF_x4sjKOavRV1dI?usp=sharing) | [`edge_ai/DoseGuard_Edge_AI_Colab.ipynb`](edge_ai/DoseGuard_Edge_AI_Colab.ipynb)
 * **Local Reproduction:**
   ```bash
   .venv/bin/python edge_ai/train_and_export.py
